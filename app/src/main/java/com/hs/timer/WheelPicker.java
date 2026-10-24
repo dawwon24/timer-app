@@ -27,7 +27,8 @@ public class WheelPicker extends View {
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Scroller scroller;
-    private final float itemH, textSize;
+    private final float itemH;
+    private final int textColor, accentColor;
     private final int touchSlop, minFling, maxFling;
     private VelocityTracker velocity;
     private OnValueChangeListener listener;
@@ -36,13 +37,12 @@ public class WheelPicker extends View {
     private int value;
     private int pos; // 스크롤 위치(px). value * itemH 에 정렬되면 정지 상태
     private float downY, lastY;
-    private boolean dragging;
+    private boolean dragging, active;
 
     public WheelPicker(Context c, AttributeSet a) {
         super(c, a);
         float d = getResources().getDisplayMetrics().density;
-        itemH = 64 * d;
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 46, getResources().getDisplayMetrics());
+        itemH = 72 * d;
         scroller = new Scroller(c);
         scroller.setFriction(ViewConfiguration.getScrollFriction() * 2.5f);
         ViewConfiguration vc = ViewConfiguration.get(c);
@@ -50,9 +50,11 @@ public class WheelPicker extends View {
         minFling = vc.getScaledMinimumFlingVelocity();
         maxFling = vc.getScaledMaximumFlingVelocity();
         paint.setTextAlign(Paint.Align.CENTER);
-        paint.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+        paint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         paint.setFontFeatureSettings("tnum");
-        paint.setColor(c.getColor(R.color.text));
+        paint.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 44, getResources().getDisplayMetrics()));
+        textColor = c.getColor(R.color.text);
+        accentColor = c.getColor(R.color.accent);
         setFocusable(true);
         setClickable(true);
     }
@@ -89,20 +91,20 @@ public class WheelPicker extends View {
         float cy = getHeight() / 2f;
         int first = (int) Math.floor(pos / itemH);
         float frac = pos - first * itemH;
-        int base = paint.getColor() & 0x00FFFFFF;
+        // 조작 중에는 강조색, 크기는 고정하고 투명도만 바꿔 글자 모양이 변하지 않게 함
+        int base = (active ? accentColor : textColor) & 0x00FFFFFF;
+        Paint.FontMetrics fm = paint.getFontMetrics();
+        float baseline = -(fm.ascent + fm.descent) / 2f;
         for (int k = -2; k <= 3; k++) {
             float y = cy + k * itemH - frac;
-            float dist = Math.min(1.5f, Math.abs(y - cy) / itemH); // 가운데로부터 몇 칸 떨어졌는지
-            float t = dist / 1.5f;
-            float scale = 1f - 0.42f * Math.min(1f, dist);
-            int alpha = (int) (255 * (1f - 0.8f * t) * (1f - 0.35f * t));
-            if (alpha <= 0) continue;
-            paint.setTextSize(textSize * scale);
-            paint.setColor(base | (alpha << 24));
-            Paint.FontMetrics fm = paint.getFontMetrics();
-            canvas.drawText(label(first + k), cx, y - (fm.ascent + fm.descent) / 2f, paint);
+            float dist = Math.abs(y - cy) / itemH; // 가운데로부터 몇 칸 떨어졌는지
+            float a = dist <= 1f
+                    ? 1f - 0.75f * dist
+                    : Math.max(0f, 1.25f - dist); // 뷰 가장자리에 잘리기 전에 사라짐
+            if (a <= 0f) continue;
+            paint.setColor(base | ((int) (255 * a) << 24));
+            canvas.drawText(label(first + k), cx, y + baseline, paint);
         }
-        paint.setColor(base | 0xFF000000);
     }
 
     private String label(int i) {
@@ -126,6 +128,7 @@ public class WheelPicker extends View {
             case MotionEvent.ACTION_MOVE:
                 if (!dragging && Math.abs(y - downY) > touchSlop) {
                     dragging = true;
+                    active = true;
                     lastY = y;
                 }
                 if (dragging) {
@@ -190,7 +193,11 @@ public class WheelPicker extends View {
 
     private void animateTo(int target, int ms) {
         scroller.forceFinished(true);
-        if (target == pos) return;
+        if (target == pos) {
+            active = false;
+            invalidate();
+            return;
+        }
         scroller.startScroll(0, pos, 0, target - pos, ms);
         postInvalidateOnAnimation();
     }
@@ -204,6 +211,7 @@ public class WheelPicker extends View {
             if (scroller.isFinished()) {
                 // 숫자가 커지지 않도록 위치를 한 바퀴 범위로 되돌림
                 pos = Math.round(value * itemH);
+                active = false;
             }
         }
     }
