@@ -47,6 +47,7 @@
             android:orientation="vertical">
 
             <LinearLayout
+                android:id="@+id/pickLabels"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal">
@@ -59,6 +60,7 @@
             </LinearLayout>
 
             <LinearLayout
+                android:id="@+id/pickWheels"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
@@ -69,6 +71,22 @@
                 <com.hs.timer.WheelPicker android:id="@+id/pickM" style="@style/Picker" />
                 <TextView style="@style/Colon" />
                 <com.hs.timer.WheelPicker android:id="@+id/pickS" style="@style/Picker" />
+            </LinearLayout>
+
+            <!-- 키패드 입력: 휠 가운데를 탭하면 표시 -->
+            <LinearLayout
+                android:id="@+id/editRow"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:visibility="gone">
+
+                <EditText android:id="@+id/editH" style="@style/TimeField" android:imeOptions="actionNext" />
+                <TextView style="@style/Colon" />
+                <EditText android:id="@+id/editM" style="@style/TimeField" android:imeOptions="actionNext" />
+                <TextView style="@style/Colon" />
+                <EditText android:id="@+id/editS" style="@style/TimeField" android:imeOptions="actionDone" />
             </LinearLayout>
         </LinearLayout>
 

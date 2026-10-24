@@ -15,15 +15,25 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.View;
 import android.view.WindowInsets;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.util.Date;
 
 public class MainActivity extends Activity {
+    private static final int[] FIELD_MAX = {99, 59, 59};
+
     private WheelPicker pickH, pickM, pickS;
+    private EditText[] edits;
+    private View pickLabels, pickWheels, editRow;
+    private boolean editing, imeShown;
     private View idleGroup, runGroup, reset;
     private RingView ring;
     private TextView timeText, subText, btnLeft, btnRight;
@@ -46,7 +56,12 @@ public class MainActivity extends Activity {
         View root = findViewById(R.id.root);
         root.setOnApplyWindowInsetsListener((v, insets) -> {
             Insets i = insets.getInsets(WindowInsets.Type.systemBars() | WindowInsets.Type.displayCutout());
-            v.setPadding(i.left, i.top, i.right, i.bottom);
+            Insets ime = insets.getInsets(WindowInsets.Type.ime());
+            v.setPadding(i.left, i.top, i.right, Math.max(i.bottom, ime.bottom));
+            // 키보드를 뒤로가기로 닫으면 입력 종료
+            boolean shown = insets.isVisible(WindowInsets.Type.ime());
+            if (imeShown && !shown && editing) v.post(this::endEdit);
+            imeShown = shown;
             return WindowInsets.CONSUMED;
         });
 
@@ -71,15 +86,17 @@ public class MainActivity extends Activity {
         pickH.setOnValueChangedListener(changed);
         pickM.setOnValueChangedListener(changed);
         pickS.setOnValueChangedListener(changed);
+        setupKeypadEntry();
 
         findViewById(R.id.add1m).setOnClickListener(v -> addTime(60_000L));
         findViewById(R.id.add10m).setOnClickListener(v -> addTime(600_000L));
         findViewById(R.id.add15s).setOnClickListener(v -> addTime(15_000L));
         findViewById(R.id.settings).setOnClickListener(v ->
                 startActivity(new Intent(this, SettingsActivity.class)));
-        reset.setOnClickListener(v -> { setPickers(0); updateIdleButtons(); });
+        reset.setOnClickListener(v -> { endEdit(); setPickers(0); updateIdleButtons(); });
 
         btnRight.setOnClickListener(v -> {
+            endEdit();
             switch (Timer.state(this)) {
                 case Timer.IDLE:
                     long ms = pickerMs();
@@ -105,6 +122,80 @@ public class MainActivity extends Activity {
         }
     }
 
+    // ---------- 키패드 입력: 휠 가운데를 탭하면 시/분/초를 직접 입력 ----------
+
+    private void setupKeypadEntry() {
+        pickLabels = findViewById(R.id.pickLabels);
+        pickWheels = findViewById(R.id.pickWheels);
+        editRow = findViewById(R.id.editRow);
+        edits = new EditText[]{findViewById(R.id.editH), findViewById(R.id.editM), findViewById(R.id.editS)};
+        WheelPicker[] picks = {pickH, pickM, pickS};
+        for (int i = 0; i < 3; i++) {
+            int idx = i;
+            EditText e = edits[i];
+            picks[i].setOnClickListener(v -> beginEdit(idx));
+            e.setOnFocusChangeListener((v, has) -> { if (!has) normalizeField(idx); });
+            e.setOnEditorActionListener((v, action, ev) -> {
+                if (action != EditorInfo.IME_ACTION_DONE) return false;
+                endEdit();
+                return true;
+            });
+            e.addTextChangedListener(new TextWatcher() {
+                @Override public void beforeTextChanged(CharSequence s, int a, int b, int c) {}
+                @Override public void onTextChanged(CharSequence s, int a, int b, int c) {}
+                @Override
+                public void afterTextChanged(Editable s) {
+                    // 두 자리를 채우면 다음 칸으로
+                    if (editing && e.hasFocus() && s.length() == 2 && idx < 2) edits[idx + 1].requestFocus();
+                }
+            });
+        }
+    }
+
+    private void beginEdit(int field) {
+        if (editing || Timer.state(this) != Timer.IDLE) return;
+        int[] vals = {pickH.getValue(), pickM.getValue(), pickS.getValue()};
+        for (int i = 0; i < 3; i++) edits[i].setText(String.format("%02d", vals[i]));
+        pickLabels.setVisibility(View.GONE);
+        pickWheels.setVisibility(View.GONE);
+        editRow.setVisibility(View.VISIBLE);
+        editing = true;
+        EditText e = edits[field];
+        e.requestFocus();
+        e.selectAll();
+        e.post(() -> getSystemService(InputMethodManager.class).showSoftInput(e, 0));
+    }
+
+    private void endEdit() {
+        if (!editing) return;
+        editing = false;
+        for (int i = 0; i < 3; i++) normalizeField(i);
+        pickH.setValue(fieldValue(0));
+        pickM.setValue(fieldValue(1));
+        pickS.setValue(fieldValue(2));
+        getSystemService(InputMethodManager.class).hideSoftInputFromWindow(editRow.getWindowToken(), 0);
+        // 입력칸이 사라질 때 포커스가 설정 버튼으로 넘어가 강조되지 않도록 루트로 옮김
+        View root = findViewById(R.id.root);
+        root.setFocusableInTouchMode(true);
+        root.setDefaultFocusHighlightEnabled(false);
+        root.requestFocus();
+        editRow.setVisibility(View.GONE);
+        pickLabels.setVisibility(View.VISIBLE);
+        pickWheels.setVisibility(View.VISIBLE);
+        updateIdleButtons();
+    }
+
+    private int fieldValue(int i) {
+        String s = edits[i].getText().toString();
+        int v = s.isEmpty() ? 0 : Integer.parseInt(s);
+        return Math.min(v, FIELD_MAX[i]);
+    }
+
+    private void normalizeField(int i) {
+        String s = String.format("%02d", fieldValue(i));
+        if (!s.contentEquals(edits[i].getText())) edits[i].setText(s);
+    }
+
     private long pickerMs() {
         return (pickH.getValue() * 3600L + pickM.getValue() * 60L + pickS.getValue()) * 1000L;
     }
@@ -117,6 +208,7 @@ public class MainActivity extends Activity {
     }
 
     private void addTime(long ms) {
+        endEdit();
         if (Timer.state(this) == Timer.IDLE) {
             setPickers(Math.min(Timer.MAX_MS, pickerMs() + ms));
             updateIdleButtons();
@@ -156,6 +248,7 @@ public class MainActivity extends Activity {
             return;
         }
         if (s != shownState) {
+            if (s != Timer.IDLE) endEdit();
             if (shownState == Timer.RINGING || (s == Timer.IDLE && shownState != -1)) {
                 setPickers(Timer.lastSet(this));
             }

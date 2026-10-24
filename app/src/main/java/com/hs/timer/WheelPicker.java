@@ -150,12 +150,14 @@ public class WheelPicker extends View {
                         settle();
                     }
                 } else {
-                    // 위/아래 숫자를 탭하면 한 칸 이동
+                    // 위/아래 숫자를 탭하면 한 칸 이동, 가운데를 탭하면 클릭(키패드 입력)
                     float cy = getHeight() / 2f;
                     if (y < cy - itemH / 2) scrollBy(-1);
                     else if (y > cy + itemH / 2) scrollBy(1);
-                    else settle();
-                    performClick();
+                    else {
+                        settle();
+                        performClick();
+                    }
                 }
                 recycleVelocity();
                 break;
