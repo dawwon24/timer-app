@@ -15,17 +15,15 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.provider.Settings;
-import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowInsets;
-import android.widget.NumberPicker;
 import android.widget.TextView;
 
 import java.text.DateFormat;
 import java.util.Date;
 
 public class MainActivity extends Activity {
-    private NumberPicker pickH, pickM, pickS;
+    private WheelPicker pickH, pickM, pickS;
     private View idleGroup, runGroup, reset;
     private RingView ring;
     private TextView timeText, subText, btnLeft, btnRight;
@@ -64,12 +62,12 @@ public class MainActivity extends Activity {
         pickH = findViewById(R.id.pickH);
         pickM = findViewById(R.id.pickM);
         pickS = findViewById(R.id.pickS);
-        setupPicker(pickH, 99);
-        setupPicker(pickM, 59);
-        setupPicker(pickS, 59);
+        pickH.setMaxValue(99);
+        pickM.setMaxValue(59);
+        pickS.setMaxValue(59);
         setPickers(Timer.lastSet(this));
 
-        NumberPicker.OnValueChangeListener changed = (p, o, n) -> updateIdleButtons();
+        WheelPicker.OnValueChangeListener changed = (p, v) -> updateIdleButtons();
         pickH.setOnValueChangedListener(changed);
         pickM.setOnValueChangedListener(changed);
         pickS.setOnValueChangedListener(changed);
@@ -104,21 +102,6 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1);
-        }
-    }
-
-    private void setupPicker(NumberPicker p, int max) {
-        String[] labels = new String[max + 1];
-        for (int i = 0; i <= max; i++) labels[i] = String.format("%02d", i);
-        p.setMinValue(0);
-        p.setMaxValue(max);
-        p.setDisplayedValues(labels);
-        p.setWrapSelectorWheel(true);
-        p.setDescendantFocusability(NumberPicker.FOCUS_BLOCK_DESCENDANTS);
-        if (Build.VERSION.SDK_INT >= 29) {
-            p.setTextSize(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, 34,
-                    getResources().getDisplayMetrics()));
-            p.setTextColor(getColor(R.color.text));
         }
     }
 

@@ -64,11 +64,11 @@
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
-                <NumberPicker android:id="@+id/pickH" style="@style/Picker" />
+                <com.hs.timer.WheelPicker android:id="@+id/pickH" style="@style/Picker" />
                 <TextView style="@style/Colon" />
-                <NumberPicker android:id="@+id/pickM" style="@style/Picker" />
+                <com.hs.timer.WheelPicker android:id="@+id/pickM" style="@style/Picker" />
                 <TextView style="@style/Colon" />
-                <NumberPicker android:id="@+id/pickS" style="@style/Picker" />
+                <com.hs.timer.WheelPicker android:id="@+id/pickS" style="@style/Picker" />
             </LinearLayout>
         </LinearLayout>
 
