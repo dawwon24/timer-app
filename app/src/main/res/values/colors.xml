@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="bg">#F6F6F6</color>
+    <color name="text">#111111</color>
+    <color name="muted">#8A8A8A</color>
+    <color name="accent">#3E7BFA</color>
+    <color name="track">#E6E6E6</color>
+    <color name="button">#EEEEEE</color>
+    <color name="ripple">#22000000</color>
+    <color name="alert">#F0524A</color>
+    <color name="alert_soft">#1FF0524A</color>
+    <color name="icon_bg">#3E7BFA</color>
+    <color name="card">#FFFFFF</color>
+    <bool name="light_bars">true</bool>
+</resources>

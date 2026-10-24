@@ -1,0 +1,54 @@
+name: Release
+# Builds a signed APK on every push to main and publishes it as a GitHub release (picked up by Obtainium).
+# Release tags are v1.<run number>, matching versionName.
+
+on:
+  push:
+    branches: [ main ]
+    paths: [ 'app/**', 'gradle/**', '*.gradle.kts', 'gradle.properties', '.github/workflows/release.yml' ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TIMER_BUILD: ${{ github.run_number }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Install signing key
+        # same key as the locally built APK already installed on the phone
+        run: |
+          mkdir -p ~/.android
+          echo "${{ secrets.DEBUG_KEYSTORE_BASE64 }}" | base64 -d > ~/.android/debug.keystore
+
+      - name: Build APK
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Publish release
+        env:
+          NOTES: ${{ github.event.head_commit.message }}
+        run: |
+          apk=$(ls app/build/outputs/apk/release/*.apk | head -n 1)
+          cp "$apk" "Timer-1.${TIMER_BUILD}.apk"
+          gh release create "v1.${TIMER_BUILD}" "Timer-1.${TIMER_BUILD}.apk" -R "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Timer 1.${TIMER_BUILD}" \
+            --notes "${NOTES:-Manual build}"

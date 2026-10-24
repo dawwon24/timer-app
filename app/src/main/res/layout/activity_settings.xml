@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="8dp">
+
+        <ImageView
+            android:id="@+id/back"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="뒤로"
+            android:padding="12dp"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="설정"
+            android:textColor="@color/text"
+            android:textSize="22sp" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="24dp">
+
+            <!-- 소리 -->
+            <LinearLayout style="@style/Card">
+
+                <LinearLayout android:id="@+id/rowSound" style="@style/Row">
+                    <TextView style="@style/RowTitle" android:text="소리" />
+                    <Switch
+                        android:id="@+id/swSound"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/rowRingtone" style="@style/RowTwoLine">
+                    <TextView style="@style/RowTitleStack" android:text="알람음" />
+                    <TextView android:id="@+id/ringtoneName" style="@style/RowSub" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/rowVolume"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:paddingStart="20dp"
+                    android:paddingTop="14dp"
+                    android:paddingEnd="20dp"
+                    android:paddingBottom="14dp">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="음량"
+                            android:textColor="@color/text"
+                            android:textSize="17sp" />
+
+                        <TextView
+                            android:id="@+id/volumeText"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:textColor="@color/accent"
+                            android:textSize="15sp" />
+                    </LinearLayout>
+
+                    <SeekBar
+                        android:id="@+id/volume"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="10dp"
+                        android:max="100" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="손을 떼면 미리 들려줍니다. 휴대폰 알람 음량과 별개로 적용됩니다."
+                        android:textColor="@color/muted"
+                        android:textSize="13sp" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 진동 -->
+            <LinearLayout style="@style/Card">
+
+                <LinearLayout android:id="@+id/rowVibrate" style="@style/Row">
+                    <TextView style="@style/RowTitle" android:text="진동" />
+                    <Switch
+                        android:id="@+id/swVibrate"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:clickable="false"
+                        android:focusable="false" />
+                </LinearLayout>
+
+                <LinearLayout android:id="@+id/rowPattern" style="@style/RowTwoLine">
+                    <TextView style="@style/RowTitleStack" android:text="진동 패턴" />
+                    <TextView android:id="@+id/patternName" style="@style/RowSub" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- 기타 -->
+            <LinearLayout style="@style/Card">
+
+                <LinearLayout android:id="@+id/rowSilence" style="@style/RowTwoLine">
+                    <TextView style="@style/RowTitleStack" android:text="자동으로 알람 끄기" />
+                    <TextView android:id="@+id/silenceName" style="@style/RowSub" />
+                </LinearLayout>
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

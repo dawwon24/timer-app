@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="28dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="타이머"
+            android:textColor="@color/text"
+            android:textSize="30sp" />
+
+        <ImageView
+            android:id="@+id/settings"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:contentDescription="설정"
+            android:padding="12dp"
+            android:src="@drawable/ic_settings" />
+    </LinearLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <!-- 대기: 시/분/초 휠 -->
+        <LinearLayout
+            android:id="@+id/idleGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView style="@style/PickerLabel" android:text="시간" />
+                <Space android:layout_width="24dp" android:layout_height="1dp" />
+                <TextView style="@style/PickerLabel" android:text="분" />
+                <Space android:layout_width="24dp" android:layout_height="1dp" />
+                <TextView style="@style/PickerLabel" android:text="초" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <NumberPicker android:id="@+id/pickH" style="@style/Picker" />
+                <TextView style="@style/Colon" />
+                <NumberPicker android:id="@+id/pickM" style="@style/Picker" />
+                <TextView style="@style/Colon" />
+                <NumberPicker android:id="@+id/pickS" style="@style/Picker" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 실행/일시정지: 원형 링 -->
+        <FrameLayout
+            android:id="@+id/runGroup"
+            android:layout_width="300dp"
+            android:layout_height="300dp"
+            android:layout_gravity="center"
+            android:visibility="gone">
+
+            <com.hs.timer.RingView
+                android:id="@+id/ring"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/timeText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFeatureSettings="tnum"
+                    android:text="00:00:00"
+                    android:textColor="@color/text"
+                    android:textSize="52sp" />
+
+                <TextView
+                    android:id="@+id/subText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:textColor="@color/muted"
+                    android:textSize="15sp" />
+            </LinearLayout>
+        </FrameLayout>
+    </FrameLayout>
+
+    <TextView
+        android:id="@+id/reset"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="8dp"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        android:gravity="center"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp"
+        android:text="초기화"
+        android:textColor="@color/muted"
+        android:textSize="15sp" />
+
+    <!-- 시간 추가 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp">
+
+        <TextView android:id="@+id/add1m" style="@style/AddButton" android:text="+1분" />
+        <TextView android:id="@+id/add10m" style="@style/AddButton" android:text="+10분" />
+        <TextView android:id="@+id/add15s" style="@style/AddButton" android:text="+15초" />
+    </LinearLayout>
+
+    <!-- 하단 버튼 -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:paddingStart="20dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="28dp">
+
+        <TextView
+            android:id="@+id/btnLeft"
+            style="@style/BottomButton"
+            android:text="취소" />
+
+        <TextView
+            android:id="@+id/btnRight"
+            style="@style/BottomButton"
+            android:text="시작"
+            android:textColor="@color/accent" />
+    </LinearLayout>
+</LinearLayout>
