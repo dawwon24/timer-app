@@ -283,18 +283,29 @@ public class MainActivity extends Activity {
         }
     }
 
-    // ---------- 백그라운드 동작을 위한 권한 안내 (최초 1회) ----------
+    // ---------- 백그라운드 동작을 위한 권한 안내 ----------
 
+    /** 종료 화면에 꼭 필요한 권한은 허용될 때까지 타이머 시작 시마다, 배터리 최적화는 최초 1회 안내. */
     private void ensurePermissions() {
         SharedPreferences sp = getSharedPreferences("setup", MODE_PRIVATE);
         NotificationManager nm = getSystemService(NotificationManager.class);
-        if (Build.VERSION.SDK_INT >= 34 && !nm.canUseFullScreenIntent() && !sp.getBoolean("fsi", false)) {
-            sp.edit().putBoolean("fsi", true).apply();
+        if (Build.VERSION.SDK_INT >= 34 && !nm.canUseFullScreenIntent()) {
             new AlertDialog.Builder(this)
                     .setTitle("전체 화면 알림 허용")
                     .setMessage("화면이 꺼져 있거나 잠겨 있을 때 타이머 종료 화면을 띄우려면 '전체 화면 알림'을 허용해 주세요.")
                     .setPositiveButton("설정", (d, w) -> startActivity(new Intent(
                             Settings.ACTION_MANAGE_APP_USE_FULL_SCREEN_INTENT,
+                            Uri.parse("package:" + getPackageName()))))
+                    .setNegativeButton("나중에", null)
+                    .show();
+            return;
+        }
+        if (!Settings.canDrawOverlays(this)) {
+            new AlertDialog.Builder(this)
+                    .setTitle("다른 앱 위에 표시 허용")
+                    .setMessage("다른 앱을 사용하는 중에도 타이머 종료 화면이 전체 화면으로 뜨도록 '다른 앱 위에 표시'를 허용해 주세요.")
+                    .setPositiveButton("설정", (d, w) -> startActivity(new Intent(
+                            Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
                             Uri.parse("package:" + getPackageName()))))
                     .setNegativeButton("나중에", null)
                     .show();

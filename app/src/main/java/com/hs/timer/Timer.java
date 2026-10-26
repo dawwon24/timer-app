@@ -8,6 +8,9 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.SystemClock;
+import android.view.View;
+import android.widget.RemoteViews;
 
 import java.util.Locale;
 
@@ -175,6 +178,7 @@ public final class Timer {
         }
         PendingIntent open = PendingIntent.getActivity(c, 11,
                 new Intent(c, MainActivity.class), PendingIntent.FLAG_IMMUTABLE);
+        long rem = remaining(c);
         Notification.Builder b = new Notification.Builder(c, CH_TIMER)
                 .setSmallIcon(R.drawable.ic_stat_timer)
                 .setContentTitle("타이머")
@@ -190,9 +194,28 @@ public final class Timer {
                     .addAction(new Notification.Action.Builder(null, "일시정지", action(c, ActionReceiver.PAUSE, 1)).build());
         } else {
             b.setShowWhen(false)
-                    .setContentText("일시정지됨 · " + format(remaining(c)))
+                    .setContentText("일시정지됨 · " + format(rem))
                     .addAction(new Notification.Action.Builder(null, "계속", action(c, ActionReceiver.RESUME, 2)).build());
         }
+
+        // 알림창에 남은 시간을 크게 표시
+        RemoteViews rv = new RemoteViews(c.getPackageName(), R.layout.notif_timer);
+        if (s == RUNNING) {
+            long base = SystemClock.elapsedRealtime() + (endAt(c) - System.currentTimeMillis());
+            rv.setViewVisibility(R.id.notif_time, View.VISIBLE);
+            rv.setViewVisibility(R.id.notif_time_static, View.GONE);
+            rv.setChronometer(R.id.notif_time, base, null, true);
+            rv.setChronometerCountDown(R.id.notif_time, true);
+            rv.setTextViewText(R.id.notif_state, "실행 중");
+        } else {
+            rv.setViewVisibility(R.id.notif_time, View.GONE);
+            rv.setViewVisibility(R.id.notif_time_static, View.VISIBLE);
+            rv.setTextViewText(R.id.notif_time_static, shortFormat(rem));
+            rv.setTextViewText(R.id.notif_state, "일시정지됨");
+        }
+        b.setStyle(new Notification.DecoratedCustomViewStyle())
+                .setCustomContentView(rv)
+                .setCustomBigContentView(rv);
         b.addAction(new Notification.Action.Builder(null, "취소", action(c, ActionReceiver.CANCEL, 3)).build());
         try {
             nm.notify(NOTIF_TIMER, b.build());
@@ -207,6 +230,14 @@ public final class Timer {
     public static String format(long ms) {
         long sec = (ms + 999) / 1000;
         return formatSec(sec);
+    }
+
+    /** ms → 크로노미터와 같은 형식("MM:SS" 또는 "H:MM:SS"), 초 단위 올림 */
+    static String shortFormat(long ms) {
+        long sec = (ms + 999) / 1000;
+        if (sec >= 3600)
+            return String.format(Locale.US, "%d:%02d:%02d", sec / 3600, (sec / 60) % 60, sec % 60);
+        return String.format(Locale.US, "%02d:%02d", sec / 60, sec % 60);
     }
 
     public static String formatSec(long sec) {

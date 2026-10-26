@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.Vibrator;
+import android.provider.Settings;
 
 /** 타이머 종료 시 알람음 + 진동을 울리는 포그라운드 서비스. */
 public class RingService extends Service {
@@ -33,6 +34,7 @@ public class RingService extends Service {
         }
         if (!started) {
             started = true;
+            showAlarmScreen();
             long silenceMs = AlarmSettings.silenceMs(this);
             wakeLock = getSystemService(PowerManager.class)
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "timer:ring");
@@ -45,6 +47,17 @@ public class RingService extends Service {
             if (silenceMs > 0) handler.postDelayed(this::silence, silenceMs);
         }
         return START_STICKY;
+    }
+
+    /** '다른 앱 위에 표시' 권한이 있으면 종료 화면을 직접 띄운다.
+     *  전체 화면 알림만으로는 폰 사용 중일 때 작은 팝업으로만 표시되기 때문. */
+    private void showAlarmScreen() {
+        if (!Settings.canDrawOverlays(this)) return;
+        try {
+            startActivity(new Intent(this, AlarmActivity.class).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK));
+        } catch (Exception ignored) {
+            // 실패하면 전체 화면 알림에 맡김
+        }
     }
 
     private Notification buildNotification() {
